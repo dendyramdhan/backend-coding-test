@@ -1,207 +1,237 @@
-'use strict';
+'use strict'
 
-const express = require('express');
-const app = express();
+const express = require('express')
+const app = express()
 
-const bodyParser = require('body-parser');
-const jsonParser = bodyParser.json();
+const bodyParser = require('body-parser')
+const jsonParser = bodyParser.json()
 
 module.exports = (db) => {
-    /**
-     * @swagger
-     * /health:
-     *  get:
-     *      description: Use to get health status
-     *      responses:
-     *          '200':
-     *              description: A successful response
-     */
-    app.get('/health', (req, res) => res.send('Healthy'));
+  /**
+   * @swagger
+   * /health:
+   *  get:
+   *      description: Use to get health status
+   *      responses:
+   *          '200':
+   *              description: A successful response
+   */
+  app.get('/health', (req, res) => res.send('Healthy'))
 
-    /**
-     * @swagger
-     * /rides:
-     *  post:
-     *      tags: 
-     *          - rides
-     *      description: Create a new rides
-     *      parameters:
-     *          - name: rides
-     *            description: Rides object
-     *            in: body
-     *            schema:
-     *              type: object
-     *              properties: 
-     *                  start_lat:
-     *                      type: integer
-     *                  end_lat:
-     *                      type: integer
-     *                  start_long:
-     *                      type: integer
-     *                  end_long:
-     *                      type: integer
-     *                  rider_name:
-     *                      type: string
-     *                  driver_name:
-     *                      type: string
-     *                  driver_vehicle:
-     *                      type: string
-     *              required:
-     *                  - start_lat
-     *                  - end_lat
-     *                  - start_long
-     *                  - end_long
-     *                  - rider_name
-     *                  - driver_name
-     *                  - driver_vehicle
-     *      produces:
-     *          - application/json
-     *      responses:
-     *          '200':
-     *              description: new rides
-     *              schema:
-     *                  $ref: '#/definitions/Rides'
-     */
-    app.post('/rides', jsonParser, (req, res) => {
-        const startLatitude = Number(req.body.start_lat);
-        const startLongitude = Number(req.body.start_long);
-        const endLatitude = Number(req.body.end_lat);
-        const endLongitude = Number(req.body.end_long);
-        const riderName = req.body.rider_name;
-        const driverName = req.body.driver_name;
-        const driverVehicle = req.body.driver_vehicle;
+  /**
+   * @swagger
+   * /rides:
+   *  post:
+   *      tags:
+   *          - rides
+   *      description: Create a new rides
+   *      parameters:
+   *          - name: rides
+   *            description: Rides object
+   *            in: body
+   *            schema:
+   *              type: object
+   *              properties:
+   *                  start_lat:
+   *                      type: integer
+   *                  end_lat:
+   *                      type: integer
+   *                  start_long:
+   *                      type: integer
+   *                  end_long:
+   *                      type: integer
+   *                  rider_name:
+   *                      type: string
+   *                  driver_name:
+   *                      type: string
+   *                  driver_vehicle:
+   *                      type: string
+   *              required:
+   *                  - start_lat
+   *                  - end_lat
+   *                  - start_long
+   *                  - end_long
+   *                  - rider_name
+   *                  - driver_name
+   *                  - driver_vehicle
+   *      produces:
+   *          - application/json
+   *      responses:
+   *          '200':
+   *              description: new rides
+   *              schema:
+   *                  $ref: '#/definitions/Rides'
+   */
+  app.post('/rides', jsonParser, (req, res) => {
+    const startLatitude = Number(req.body.start_lat)
+    const startLongitude = Number(req.body.start_long)
+    const endLatitude = Number(req.body.end_lat)
+    const endLongitude = Number(req.body.end_long)
+    const riderName = req.body.rider_name
+    const driverName = req.body.driver_name
+    const driverVehicle = req.body.driver_vehicle
 
-        if (startLatitude < -90 || startLatitude > 90 || startLongitude < -180 || startLongitude > 180) {
-            return res.send({
-                error_code: 'VALIDATION_ERROR',
-                message: 'Start latitude and longitude must be between -90 - 90 and -180 to 180 degrees respectively'
-            });
+    if (
+      startLatitude < -90 ||
+      startLatitude > 90 ||
+      startLongitude < -180 ||
+      startLongitude > 180
+    ) {
+      return res.send({
+        error_code: 'VALIDATION_ERROR',
+        message:
+          'Start latitude and longitude must be between -90 - 90 and -180 to 180 degrees respectively'
+      })
+    }
+
+    if (
+      endLatitude < -90 ||
+      endLatitude > 90 ||
+      endLongitude < -180 ||
+      endLongitude > 180
+    ) {
+      return res.send({
+        error_code: 'VALIDATION_ERROR',
+        message:
+          'End latitude and longitude must be between -90 - 90 and -180 to 180 degrees respectively'
+      })
+    }
+
+    if (typeof riderName !== 'string' || riderName.length < 1) {
+      return res.send({
+        error_code: 'VALIDATION_ERROR',
+        message: 'Rider name must be a non empty string'
+      })
+    }
+
+    if (typeof driverName !== 'string' || driverName.length < 1) {
+      return res.send({
+        error_code: 'VALIDATION_ERROR',
+        message: 'Rider name must be a non empty string'
+      })
+    }
+
+    if (typeof driverVehicle !== 'string' || driverVehicle.length < 1) {
+      return res.send({
+        error_code: 'VALIDATION_ERROR',
+        message: 'Rider name must be a non empty string'
+      })
+    }
+
+    var values = [
+      req.body.start_lat,
+      req.body.start_long,
+      req.body.end_lat,
+      req.body.end_long,
+      req.body.rider_name,
+      req.body.driver_name,
+      req.body.driver_vehicle
+    ]
+
+    db.run(
+      'INSERT INTO Rides(startLat, startLong, endLat, endLong, riderName, driverName, driverVehicle) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      values,
+      function (err) {
+        if (err) {
+          return res.send({
+            error_code: 'SERVER_ERROR',
+            message: 'Unknown error'
+          })
         }
 
-        if (endLatitude < -90 || endLatitude > 90 || endLongitude < -180 || endLongitude > 180) {
+        db.all('SELECT * FROM Rides WHERE rideID = ?', this.lastID, function (
+          err,
+          rows
+        ) {
+          if (err) {
             return res.send({
-                error_code: 'VALIDATION_ERROR',
-                message: 'End latitude and longitude must be between -90 - 90 and -180 to 180 degrees respectively'
-            });
-        }
+              error_code: 'SERVER_ERROR',
+              message: 'Unknown error'
+            })
+          }
 
-        if (typeof riderName !== 'string' || riderName.length < 1) {
-            return res.send({
-                error_code: 'VALIDATION_ERROR',
-                message: 'Rider name must be a non empty string'
-            });
-        }
+          res.send(rows)
+        })
+      }
+    )
+  })
 
-        if (typeof driverName !== 'string' || driverName.length < 1) {
-            return res.send({
-                error_code: 'VALIDATION_ERROR',
-                message: 'Rider name must be a non empty string'
-            });
-        }
+  /**
+   * @swagger
+   * /rides:
+   *  get:
+   *      tags:
+   *          - rides
+   *      description: Retrieve the full list of rides
+   *      produces:
+   *          - application/json
+   *      responses:
+   *          '200':
+   *              description: rides
+   *              schema:
+   *                  $ref: '#/definitions/Rides'
+   */
+  app.get('/rides', (req, res) => {
+    db.all('SELECT * FROM Rides', function (err, rows) {
+      if (err) {
+        return res.send({
+          error_code: 'SERVER_ERROR',
+          message: 'Unknown error'
+        })
+      }
 
-        if (typeof driverVehicle !== 'string' || driverVehicle.length < 1) {
-            return res.send({
-                error_code: 'VALIDATION_ERROR',
-                message: 'Rider name must be a non empty string'
-            });
-        }
+      if (rows.length === 0) {
+        return res.send({
+          error_code: 'RIDES_NOT_FOUND_ERROR',
+          message: 'Could not find any rides'
+        })
+      }
 
-        var values = [req.body.start_lat, req.body.start_long, req.body.end_lat, req.body.end_long, req.body.rider_name, req.body.driver_name, req.body.driver_vehicle];
-        
-        const result = db.run('INSERT INTO Rides(startLat, startLong, endLat, endLong, riderName, driverName, driverVehicle) VALUES (?, ?, ?, ?, ?, ?, ?)', values, function (err) {
-            if (err) {
-                return res.send({
-                    error_code: 'SERVER_ERROR',
-                    message: 'Unknown error'
-                });
-            }
+      res.send(rows)
+    })
+  })
 
-            db.all('SELECT * FROM Rides WHERE rideID = ?', this.lastID, function (err, rows) {
-                if (err) {
-                    return res.send({
-                        error_code: 'SERVER_ERROR',
-                        message: 'Unknown error'
-                    });
-                }
+  /**
+   * @swagger
+   * /rides/{id}:
+   *  get:
+   *      tags:
+   *          - rides
+   *      description: Retrieve an specific ride
+   *      parameters:
+   *          - name: id
+   *            description: id of the ride to retrieve
+   *            in: path
+   *            type: integer
+   *            required: true
+   *      responses:
+   *          '200':
+   *              description: rides
+   *              schema:
+   *                  $ref: '#/definitions/Rides'
+   */
+  app.get('/rides/:id', (req, res) => {
+    db.all(`SELECT * FROM Rides WHERE rideID='${req.params.id}'`, function (
+      err,
+      rows
+    ) {
+      if (err) {
+        return res.send({
+          error_code: 'SERVER_ERROR',
+          message: 'Unknown error'
+        })
+      }
 
-                res.send(rows);
-            });
-        });
-    });
+      if (rows.length === 0) {
+        return res.send({
+          error_code: 'RIDES_NOT_FOUND_ERROR',
+          message: 'Could not find any rides'
+        })
+      }
 
-    /**
-     * @swagger
-     * /rides:
-     *  get:
-     *      tags: 
-     *          - rides
-     *      description: Retrieve the full list of rides
-     *      produces:
-     *          - application/json
-     *      responses:
-     *          '200':
-     *              description: rides
-     *              schema:
-     *                  $ref: '#/definitions/Rides'
-     */
-    app.get('/rides', (req, res) => {
-        db.all('SELECT * FROM Rides', function (err, rows) {
-            if (err) {
-                return res.send({
-                    error_code: 'SERVER_ERROR',
-                    message: 'Unknown error'
-                });
-            }
+      res.send(rows)
+    })
+  })
 
-            if (rows.length === 0) {
-                return res.send({
-                    error_code: 'RIDES_NOT_FOUND_ERROR',
-                    message: 'Could not find any rides'
-                });
-            }
-
-            res.send(rows);
-        });
-    });
-
-    /**
-     * @swagger
-     * /rides/{id}:
-     *  get:
-     *      tags: 
-     *          - rides
-     *      description: Retrieve an specific ride
-     *      parameters:
-     *          - name: id
-     *            description: id of the ride to retrieve
-     *            in: path
-     *            type: integer
-     *            required: true
-     *      responses:
-     *          '200':
-     *              description: rides
-     *              schema:
-     *                  $ref: '#/definitions/Rides'
-     */
-    app.get('/rides/:id', (req, res) => {
-        db.all(`SELECT * FROM Rides WHERE rideID='${req.params.id}'`, function (err, rows) {
-            if (err) {
-                return res.send({
-                    error_code: 'SERVER_ERROR',
-                    message: 'Unknown error'
-                });
-            }
-
-            if (rows.length === 0) {
-                return res.send({
-                    error_code: 'RIDES_NOT_FOUND_ERROR',
-                    message: 'Could not find any rides'
-                });
-            }
-
-            res.send(rows);
-        });
-    });
-
-    return app;
-};
+  return app
+}
