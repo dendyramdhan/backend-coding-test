@@ -1,6 +1,46 @@
 'use strict';
 
 module.exports = (db) => {
+    /**
+     * @swagger
+     * definitions:
+     *   Ride:
+     *     type: object
+     *     required:
+     *       - rideID
+     *       - startLat
+     *       - startLong
+     *       - endLat
+     *       - endLong
+     *       - riderName
+     *       - driverName
+     *       - driverVehicle
+     *       - created
+     *     properties:
+     *       rideID:
+     *         type: number
+     *       startLat:
+     *         type: number
+     *       startLong:
+     *         type: number
+     *       endLat:
+     *         type: number
+     *       endLong:
+     *         type: number
+     *       riderName:
+     *         type: string
+     *       driverName:
+     *         type: string
+     *       driverVehicle:
+     *         type: string
+     *       created:
+     *         type: number
+     *         format: date-time
+     *   Rides:
+     *     type: array
+     *     items:
+     *       $ref: '#/definitions/Ride'
+     */
     const createRideTableSchema = `
         CREATE TABLE Rides
         (

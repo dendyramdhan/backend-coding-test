@@ -7,8 +7,61 @@ const bodyParser = require('body-parser');
 const jsonParser = bodyParser.json();
 
 module.exports = (db) => {
+    /**
+     * @swagger
+     * /health:
+     *  get:
+     *      description: Use to get health status
+     *      responses:
+     *          '200':
+     *              description: A successful response
+     */
     app.get('/health', (req, res) => res.send('Healthy'));
 
+    /**
+     * @swagger
+     * /rides:
+     *  post:
+     *      tags: 
+     *          - rides
+     *      description: Create a new rides
+     *      parameters:
+     *          - name: rides
+     *            description: Rides object
+     *            in: body
+     *            schema:
+     *              type: object
+     *              properties: 
+     *                  start_lat:
+     *                      type: integer
+     *                  end_lat:
+     *                      type: integer
+     *                  start_long:
+     *                      type: integer
+     *                  end_long:
+     *                      type: integer
+     *                  rider_name:
+     *                      type: string
+     *                  driver_name:
+     *                      type: string
+     *                  driver_vehicle:
+     *                      type: string
+     *              required:
+     *                  - start_lat
+     *                  - end_lat
+     *                  - start_long
+     *                  - end_long
+     *                  - rider_name
+     *                  - driver_name
+     *                  - driver_vehicle
+     *      produces:
+     *          - application/json
+     *      responses:
+     *          '200':
+     *              description: new rides
+     *              schema:
+     *                  $ref: '#/definitions/Rides'
+     */
     app.post('/rides', jsonParser, (req, res) => {
         const startLatitude = Number(req.body.start_lat);
         const startLongitude = Number(req.body.start_long);
@@ -76,6 +129,21 @@ module.exports = (db) => {
         });
     });
 
+    /**
+     * @swagger
+     * /rides:
+     *  get:
+     *      tags: 
+     *          - rides
+     *      description: Retrieve the full list of rides
+     *      produces:
+     *          - application/json
+     *      responses:
+     *          '200':
+     *              description: rides
+     *              schema:
+     *                  $ref: '#/definitions/Rides'
+     */
     app.get('/rides', (req, res) => {
         db.all('SELECT * FROM Rides', function (err, rows) {
             if (err) {
@@ -96,6 +164,25 @@ module.exports = (db) => {
         });
     });
 
+    /**
+     * @swagger
+     * /rides/{id}:
+     *  get:
+     *      tags: 
+     *          - rides
+     *      description: Retrieve an specific ride
+     *      parameters:
+     *          - name: id
+     *            description: id of the ride to retrieve
+     *            in: path
+     *            type: integer
+     *            required: true
+     *      responses:
+     *          '200':
+     *              description: rides
+     *              schema:
+     *                  $ref: '#/definitions/Rides'
+     */
     app.get('/rides/:id', (req, res) => {
         db.all(`SELECT * FROM Rides WHERE rideID='${req.params.id}'`, function (err, rows) {
             if (err) {
